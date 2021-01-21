@@ -6,7 +6,7 @@ import json
 
 # Lower and upper bounds for size classes - Class 0 is the total average across entire range of data
 class_bounds = {"recip_engine": [(30, 9300), (30, 100), (100, 630), (630, 1140), (1140, 3300), (3300, 9300)],
-                "micro_turbine": [(30, 950), (30, 60), (60, 190), (190, 950), (950, 1290)],
+                "micro_turbine": [(30, 1290), (30, 60), (60, 190), (190, 950), (950, 1290)],
                 "combustion_turbine": [(950, 20000), (950, 1800), (1800, 3300), (3300, 5400), (5400, 7500), (7500, 14000), (14000, 20000)],
                 "fuel_cell": [(30, 9300), (30, 320), (320, 1400), (1400, 9300)]}
 
@@ -53,12 +53,17 @@ chp_defaults_not_size_class_dependent = {
                                             'derate_slope_pct_per_degF': 0.0},
                                         'fuel_cell': {
                                             'min_kw': 0,
-                                            'max_kw': 5000,
+                                            'max_kw': 10000,
                                             'min_turn_down_pct': 0.3,
                                             'max_derate_factor': 1.0,
                                             'derate_start_temp_degF': 59,
                                             'derate_slope_pct_per_degF': 0.0}
                                         }
+
+cooling_thermal_factor_all = {"recip_engine": (0.0, 0.8, 0.8, 0.85, 0.85, 0.85),
+                          "micro_turbine": 0.94,
+                          "combustion_turbine": 0.90,
+                          "fuel_cell": 0.94}
 
 def create_chp_prime_mover_defaults(class_bounds, capacity_factor, elec_effic_half_frac, hre_half_frac):
     # Cost and performane data which varies based on size class
@@ -118,6 +123,7 @@ def process_size_class_data(class_bounds, capacity_factor, elec_effic_half_frac,
     steam_hre_full_class = {}
     hw_hre_half_class = {}
     steam_hre_half_class = {}
+    cooling_thermal_factor = {}
     for p, pm in enumerate(full_elec_effic_all.columns):
         size_class_avg_pwr[pm] = []
         capex_class[pm] = []
@@ -139,6 +145,7 @@ def process_size_class_data(class_bounds, capacity_factor, elec_effic_half_frac,
         elec_effic_all = full_elec_effic_all[pm].dropna().values
         hw_therm_effic_all = full_hw_therm_effic_all[pm].dropna().values
         steam_therm_effic_all = full_steam_therm_effic_all[pm].dropna().values
+        cooling_thermal_factor[pm] = []
         for i, sc in enumerate(class_bounds[pm]):
             size_class_avg_pwr[pm].append(np.mean(class_bounds[pm][i]))
             #capex_class[pm].append(np.mean(capex_all[(sizes_all >= sc[0]) & (sizes_all <= sc[1])]))
@@ -155,8 +162,17 @@ def process_size_class_data(class_bounds, capacity_factor, elec_effic_half_frac,
             steam_hre_half_class[pm].append(steam_hre_full_class[pm][i] * hre_half_frac[p])
             hw_therm_effic_half_class[pm].append((1 - elec_effic_half_class[pm][i]) * hw_hre_half_class[pm][i])
             steam_therm_effic_half_class[pm].append((1 - elec_effic_half_class[pm][i]) * steam_hre_half_class[pm][i])
+            if pm == "recip_engine":
+                if i == 0:
+                    cooling_thermal_factor[pm].append(np.mean(cooling_thermal_factor_all[pm][1:])) # Ignore lowest size class value (0) in average
+                elif i == 1:
+                    cooling_thermal_factor[pm].append(0.0)
+                else:
+                    cooling_thermal_factor[pm].append(cooling_thermal_factor_all[pm][i])
+            else:  # Currently cooling_thermal_factor is constant for all other prime movers, not dependent on size class
+                cooling_thermal_factor[pm].append(cooling_thermal_factor_all[pm])
         # Build a dictionary of all data, grouped first by prime mover type, then by size class
-        # TODO I'm putting full load efficiencies into half load efficiencies to keep constant efficieny
+        # TODO I'm putting full load efficiencies into half load efficiencies to keep constant efficiency
         size_class_data_all[pm] = {'installed_cost_us_dollars_per_kw': capex_class[pm],
                                    'tech_size_for_cost_curve': capex_sizes[pm],
                                    'om_cost_us_dollars_per_kw': [0] * len(class_bounds[pm]),
@@ -166,7 +182,8 @@ def process_size_class_data(class_bounds, capacity_factor, elec_effic_half_frac,
                                    'elec_effic_half_load': elec_effic_full_class[pm],
                                    'thermal_effic_full_load': (hw_therm_effic_full_class[pm], steam_therm_effic_full_class[pm]),
                                    'thermal_effic_half_load': (hw_therm_effic_full_class[pm], steam_therm_effic_full_class[pm]),
-                                   'min_allowable_kw': [class_bounds[pm][sc][0] * min_allow_frac[p] for sc in range(len(class_bounds[pm]))]}
+                                   'min_allowable_kw': [class_bounds[pm][sc][0] * min_allow_frac[p] for sc in range(len(class_bounds[pm]))],
+                                   'cooling_thermal_factor': cooling_thermal_factor[pm]}
 
     return size_class_data_all
 
