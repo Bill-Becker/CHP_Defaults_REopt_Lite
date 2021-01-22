@@ -88,6 +88,8 @@ def create_chp_prime_mover_defaults(class_bounds, capacity_factor, elec_effic_ha
     return prime_mover_defaults_all
 
 # Find average values across size class for all cost and performance parameters
+# TODO there is still a tweak to the recip_engine thermal efficiency for steam (index = 1) for size_class 0 and 1 that should be automated
+# TODO may be some Fuel Cell tweaks coming soon
 def process_size_class_data(class_bounds, capacity_factor, elec_effic_half_frac, hre_half_frac):
     # Data
     file_capex = 'CHP_CapEx_FactSheets.csv'
