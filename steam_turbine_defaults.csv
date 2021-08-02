@@ -1,0 +1,13 @@
+,class_0,class_1,class_2,class_3
+size_class_min_kw,0,0,0,0
+size_class_min_allowable_kw,0,0,1000,3000
+size_class_max_kw,25000,1000,5000,25000
+installed_cost_us_dollars_per_kw,828,1136,68,666
+om_cost_us_dollars_per_kw,0,0,0,0
+om_cost_us_dollars_per_kwh,0.0083,0.01,0.009,0.006
+inlet_steam_pressure_psig,600,500,600,700
+inlet_steam_temperature_degF,592.0,550,575,650
+outlet_steam_pressure_psig,117.0,50,150,150
+isentropic_efficiency,0.639,0.525,0.612,0.78
+gearbox_generator_efficiency,0.947,0.94,0.94,0.96
+net_to_gross_electric_ratio,0.971,0.974,0.966,0.973
