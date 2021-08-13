@@ -8,7 +8,7 @@ import json
 class_bounds = {"recip_engine": [(30, 9300), (30, 100), (100, 630), (630, 1140), (1140, 3300), (3300, 9300)],
                 "micro_turbine": [(30, 1290), (30, 60), (60, 190), (190, 950), (950, 1290)],
                 "combustion_turbine": [(950, 20000), (950, 1800), (1800, 3300), (3300, 5400), (5400, 7500), (7500, 14000), (14000, 20000)],
-                "fuel_cell": [(30, 9300), (30, 320), (320, 1400), (1400, 9300)]}
+                "fuel_cell": [(440, 9300), (440, 1400), (1400, 9300)]}
 
 # Count number of size classes for each prime mover
 n_classes = {pm: len(class_bounds[pm]) for pm in class_bounds.keys()}
@@ -23,7 +23,7 @@ default_chp_size_class = {"recip_engine": 0,
 capacity_factor = 1.0
 
 # Fraction of lower bound kW for size class that is assigned to min_allowable_kw
-min_allow_frac = [0.5, 0.7, 1.0, 0.5]
+min_allow_frac = [1.0, 0.7, 1.0, 0.5]
 
 # Assumptions used to get the half load performance from the full load
 elec_effic_half_frac = [0.9, 0.8, 0.8, 0.9]  # NOT USED
